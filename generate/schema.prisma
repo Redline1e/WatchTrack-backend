@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generate"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int         @id @default(autoincrement())
+  email      String      @unique
+  password   String
+  name       String?
+  role       Role        @default(GUEST)
+  createdAt  DateTime    @default(now())
+  reviews    Review[]
+  watchItems WatchItem[]
+}
+
+model Film {
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String?
+  type        FilmType
+  releaseYear Int?
+  ratingAvg   Float       @default(0)
+  genres      Genre[]     @relation("FilmGenres")
+  photoUrl    String?
+  reviews     Review[]
+  watchItems  WatchItem[]
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  film      Film     @relation(fields: [filmId], references: [id])
+  filmId    Int
+  rating    Int 
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model WatchItem {
+  id      Int         @id @default(autoincrement())
+  user    User        @relation(fields: [userId], references: [id])
+  userId  Int
+  film    Film        @relation(fields: [filmId], references: [id])
+  filmId  Int
+  status  WatchStatus @default(PLANNED)
+  addedAt DateTime    @default(now())
+}
+
+model Genre {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  films Film[] @relation("FilmGenres")
+}
+
+enum Role {
+  GUEST
+  USER
+  ADMIN
+}
+
+enum FilmType {
+  MOVIE
+  SERIES
+  ANIME
+}
+
+enum WatchStatus {
+  PLANNED
+  WATCHING
+  WATCHED
+}
